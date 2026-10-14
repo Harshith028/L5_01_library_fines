@@ -1,4 +1,3 @@
-
 """Manage library loans and calculate overdue fines."""
 
 import ast
@@ -10,7 +9,6 @@ from datetime import datetime
 loans = {}
 FINE_PER_DAY = 2
 
-# Only basic arithmetic operations are allowed in fine rules.
 _ALLOWED_OPERATORS = {
     ast.Add: operator.add,
     ast.Sub: operator.sub,
@@ -34,7 +32,6 @@ def add_book_loan(student_id, book_id, dates=None):
 
     dates.append(datetime.now().isoformat())
     loans[student_id] = loans.get(student_id, []) + [str(book_id)]
-
     print(
         f"{student_id} borrowed {book_id} "
         f"(loan dates on record: {len(dates)})"
@@ -55,7 +52,6 @@ def calculate_fine(days_overdue):
     """Calculate the fine for overdue days."""
     if days_overdue < 0:
         raise ValueError("Days overdue cannot be negative.")
-
     return days_overdue * FINE_PER_DAY
 
 
@@ -110,7 +106,10 @@ def _evaluate_arithmetic(node):
     ):
         return node.value
 
-    if isinstance(node, ast.BinOp) and type(node.op) in _ALLOWED_OPERATORS:
+    if (
+        isinstance(node, ast.BinOp)
+        and type(node.op) in _ALLOWED_OPERATORS
+    ):
         left = _evaluate_arithmetic(node.left)
         right = _evaluate_arithmetic(node.right)
 
@@ -127,15 +126,13 @@ def _evaluate_arithmetic(node):
             _evaluate_arithmetic(node.operand)
         )
     else:
-        raise ValueError(
-            "Fine rule contains an unsupported expression."
-        )
+        raise ValueError("Fine rule contains an unsupported expression.")
 
     if type(result) not in (int, float):
         raise ValueError("Fine rule must produce a number.")
 
-    if abs(result) > 1_000_000_000_000:
-        raise ValueError("Fine rule result is too large.")
+    if not math.isfinite(result) or abs(result) > 1_000_000_000_000:
+        raise ValueError("Fine rule result must be finite and within limits.")
 
     return result
 
@@ -175,7 +172,7 @@ def print_report():
 
 
 def main():
-    """Run a demonstration of the library loan system."""
+    """Run a demonstration of the library loan management system."""
     add_book_loan("S101", "B-ALGO")
     add_book_loan("S102", "B-NETW")
     add_book_loan("", "B-DBMS")
